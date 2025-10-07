@@ -1,0 +1,73 @@
+{
+  "name": "medivault-backend",
+  "version": "1.0.0",
+  "description": "MediVault Backend - Secure Medical Document Management System",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "db:seed": "node scripts/seedDatabase.js",
+    "db:reset": "node scripts/resetDatabase.js",
+    "db:migrate": "node scripts/migrateDatabase.js"
+  },
+  "keywords": [
+    "medical",
+    "document-management",
+    "blockchain",
+    "ai",
+    "healthcare",
+    "security"
+  ],
+  "author": "MediVault Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^8.0.3",
+    "pg": "^8.11.3",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.3.1",
+    "express-rate-limit": "^7.1.5",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.0",
+    "pdf-parse": "^1.1.1",
+    "dicom-parser": "^1.8.21",
+    "ethers": "^6.8.1",
+    "ipfs-http-client": "^60.0.1",
+    "redis": "^4.6.10",
+    "socket.io": "^4.7.4",
+    "crypto": "^1.0.1",
+    "uuid": "^9.0.1",
+    "joi": "^17.11.0",
+    "compression": "^1.7.4",
+    "express-validator": "^7.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "eslint": "^8.55.0",
+    "@types/node": "^20.10.4",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/medivault/backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/medivault/backend/issues"
+  },
+  "homepage": "https://github.com/medivault/backend#readme"
+}
