@@ -2,34 +2,40 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true, index: true },
-  walletAddress: { type: String, index: true },
+  walletAddress: { type: String, index: true, unique: true, sparse: true },
+  email: { type: String, index: true, unique: true, sparse: true },
+  name: { type: String },
+  roles: { type: [String], default: [] },
+  department: { type: String },
+  patientRef: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
+  publicKey: { type: String },
+  status: { type: String, enum: ['active', 'inactive'], default: 'active' },
   passwordHash: { type: String },
-  role: { type: String, enum: ['patient', 'doctor', 'admin'], default: 'patient' },
-  status: { type: String, enum: ['active', 'suspended'], default: 'active' },
-  profile: { type: mongoose.Schema.Types.Mixed, default: {} },
-  isVerified: { type: Boolean, default: false },
-  verificationToken: { type: String },
-  resetToken: { type: String },
-  resetTokenExpires: { type: Date },
-  lastLogin: { type: Date }
+  authProvider: { type: String, enum: ['password', 'wallet', 'sso', 'otp'], default: 'password' },
+  emailVerified: { type: Boolean, default: false },
+  mfaEnabled: { type: Boolean, default: false },
+  mfaSecretRef: { type: String },
+  failedLoginCount: { type: Number, default: 0 },
+  lastLogin: { type: Date },
+  lastActiveAt: { type: Date }
 }, {
-  timestamps: true,
+  timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
   collection: 'users'
 });
 
 // Indexes
-userSchema.index({ email: 1 });
-userSchema.index({ walletAddress: 1 });
+userSchema.index({ roles: 1 });
+userSchema.index({ status: 1, roles: 1 });
+userSchema.index({ lastLogin: -1 });
 
 // Statics
 userSchema.statics.createUser = async function(userData) {
-  const { email, walletAddress, password, role = 'patient', profile = {} } = userData;
+  const { email, walletAddress, password, roles = [], name, department, patientRef, publicKey, authProvider = 'password' } = userData;
   let passwordHash = null;
   if (password) {
     passwordHash = await bcrypt.hash(password, 12);
   }
-  return this.create({ email, walletAddress, passwordHash, role, profile });
+  return this.create({ email, walletAddress, passwordHash, roles, name, department, patientRef, publicKey, authProvider });
 };
 
 userSchema.statics.findByEmail = function(email) {
@@ -41,13 +47,6 @@ userSchema.statics.findByWalletAddress = function(walletAddress) {
 };
 
 // Methods
-userSchema.methods.updateFields = async function(updates) {
-  const allowed = new Set(['email', 'walletAddress', 'role', 'status', 'profile', 'isVerified', 'verificationToken', 'resetToken', 'resetTokenExpires']);
-  Object.entries(updates).forEach(([k, v]) => { if (allowed.has(k)) this[k] = v; });
-  await this.save();
-  return this;
-};
-
 userSchema.methods.verifyPassword = async function(password) {
   if (!this.passwordHash) return false;
   return bcrypt.compare(password, this.passwordHash);

@@ -1,44 +1,48 @@
 const mongoose = require('mongoose');
 
-const documentSchema = new mongoose.Schema({
-  filename: { type: String, required: true },
-  originalName: { type: String, required: true },
-  fileType: { type: String, required: true },
-  fileSize: { type: Number, required: true },
-  mimeType: { type: String, required: true },
-  ipfsHash: { type: String, required: true, index: true },
-  blockchainHash: { type: String },
-  checksumSha256: { type: String, index: true },
-  encryptionKeyId: { type: String },
-  uploaderId: { type: String, required: true, index: true },
-  patientId: { type: String, index: true },
-  status: { type: String, enum: ['uploaded', 'processing', 'completed', 'failed'], default: 'uploaded' },
-  metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
-  medicalMetadata: { type: mongoose.Schema.Types.Mixed, default: {} },
-  processingStatus: { type: String, enum: ['pending', 'processing', 'completed', 'failed'], default: 'pending' }
+const EncryptionSchema = new mongoose.Schema({
+  encrypted: { type: Boolean, default: false },
+  scheme: { type: String }, // 'AES-256-GCM'
+  encryptedKey: { type: String },
+  keyRef: { type: String },
+  iv: { type: String },
+  tag: { type: String }
+}, { _id: false });
+
+const DocumentSchema = new mongoose.Schema({
+  patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', index: true },
+  uploaderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  title: { type: String },
+  description: { type: String },
+  modality: { type: String, enum: ['CT', 'X-RAY', 'DICOM', 'PDF', 'REPORT'] },
+  studyInstanceUID: { type: String, index: true },
+  seriesInstanceUID: { type: String, index: true },
+  cidOrUrl: { type: String, index: true },
+  fileHash: { type: String, index: true },
+  fileSize: { type: Number },
+  mimeType: { type: String },
+  encryption: { type: EncryptionSchema, default: () => ({}) },
+  visibility: { type: String, enum: ['private', 'public', 'restricted'], default: 'private' },
+  vectorMeta: { vectorId: { type: String } },
+  extractedTextRef: { type: mongoose.Schema.Types.ObjectId, ref: 'TextChunk' },
+  tags: { type: [String], default: [] },
+  status: { type: String, enum: ['active', 'archived', 'deleted'], default: 'active' },
+  docIdOnChain: { type: String },
+  storage: { type: String, enum: ['ipfs', 's3'], default: 'ipfs' },
+  version: { type: Number, default: 1 },
+  supersedesDocId: { type: mongoose.Schema.Types.ObjectId, ref: 'Document' }
 }, {
-  timestamps: true,
+  timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
   collection: 'documents'
 });
 
-documentSchema.index({ uploaderId: 1, createdAt: -1 });
-documentSchema.index({ patientId: 1, createdAt: -1 });
-documentSchema.index({ fileType: 1 });
+// Indexes
+DocumentSchema.index({ patientId: 1, createdAt: -1 });
+DocumentSchema.index({ cidOrUrl: 1 });
+DocumentSchema.index({ fileHash: 1 });
+DocumentSchema.index({ studyInstanceUID: 1 });
+DocumentSchema.index({ seriesInstanceUID: 1 });
+DocumentSchema.index({ uploaderId: 1, createdAt: -1 });
 
-documentSchema.statics.search = function(searchTerm, filters = {}, limit = 50, offset = 0) {
-  const query = {};
-  if (searchTerm) {
-    query.$or = [
-      { filename: new RegExp(searchTerm, 'i') },
-      { originalName: new RegExp(searchTerm, 'i') }
-    ];
-  }
-  if (filters.fileType) query.fileType = filters.fileType;
-  if (filters.uploaderId) query.uploaderId = filters.uploaderId;
-  if (filters.patientId) query.patientId = filters.patientId;
-  if (filters.status) query.status = filters.status;
-  return this.find(query).sort({ createdAt: -1 }).skip(offset).limit(limit);
-};
-
-module.exports = mongoose.model('Document', documentSchema);
+module.exports = mongoose.model('Document', DocumentSchema);
 
