@@ -1,95 +1,136 @@
 # MediVault
 
-A comprehensive medical records management system designed to securely store, organize, and manage patient medical information.
+Secure medical document and records management system focused on privacy, access control, and AI-assisted retrieval.
+
+This repository currently contains the backend service in `backend/` (Node.js + Express + MongoDB) with integrations for blockchain, IPFS, Redis, and AI processing. See `backend/README.md` for detailed API docs and development guidance.
 
 ## Features
 
-- **Secure Patient Records**: Encrypted storage of medical history, prescriptions, and test results
-- **Digital Prescription Management**: Create, store, and track prescription medications
-- **Appointment Scheduling**: Manage patient appointments and medical consultations
-- **Medical History Tracking**: Comprehensive timeline of patient medical events
-- **Document Management**: Upload and organize medical documents, images, and reports
-- **Search & Filter**: Quick access to patient information with advanced search capabilities
-- **Data Export**: Export patient records in various formats for sharing with healthcare providers
-- **Multi-user Support**: Role-based access control for different healthcare professionals
+- **Secure document storage**: Encrypted files with access control and audit logging
+- **Role-based access**: Fine-grained permissions and request/approval flows
+- **AI-assisted retrieval**: Text chunking, embeddings, and semantic search
+- **Blockchain hooks**: Document hash verification and access events (via `ethers`)
+- **IPFS support**: Optional decentralized file storage
+- **Notifications**: Email/websocket notifications for access events
 
-## Technology Stack
+## Tech Stack
 
-- **Frontend**: React.js with TypeScript
-- **Backend**: Node.js with Express
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT-based authentication
-- **File Storage**: Cloud storage integration
-- **Security**: End-to-end encryption for sensitive data
+- **Runtime**: Node.js (18+)
+- **Framework**: Express
+- **Database**: MongoDB (Mongoose models in `backend/src/models`)
+- **Caching/Queues**: Redis (optional)
+- **Security**: JWT, rate limiting, input validation
+- **Integrations**: Ethers (blockchain), IPFS HTTP client, Socket.IO
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- MongoDB (v4.4 or higher)
-- Git
+- Node.js 18+
+- MongoDB 6+
+- (Optional) Redis, IPFS endpoint, blockchain RPC
 
-### Installation
+### Clone and run backend
 
-1. Clone the repository:
 ```bash
 git clone https://github.com/SidhikThorat/MediVault.git
-cd MediVault
-```
-
-2. Install dependencies:
-```bash
+cd MediVault/backend
 npm install
-```
-
-3. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-4. Start the development server:
-```bash
+cp env.example .env
+# Edit .env with your local configuration
 npm run dev
 ```
 
-## Project Structure
+The server defaults to `PORT=5000`. Environment options are documented in `backend/env.example`.
+
+## Repository Layout
 
 ```
 MediVault/
-├── client/                 # Frontend React application
-├── server/                 # Backend Node.js application
-├── shared/                 # Shared types and utilities
-├── docs/                   # Documentation
-├── tests/                  # Test files
+├── backend/
+│   ├── src/
+│   │   ├── config/        # Service/database configuration
+│   │   ├── controllers/   # Route handlers (reserved)
+│   │   ├── middleware/    # Auth, validation, etc.
+│   │   ├── models/        # Mongoose models (User, Patient, Document, ...)
+│   │   ├── routes/        # Express routes (reserved)
+│   │   ├── services/      # Business logic (reserved)
+│   │   ├── utils/         # Helpers
+│   │   └── app.js         # Express app entry (see backend/package.json)
+│   ├── docs/
+│   ├── tests/
+│   ├── scripts/
+│   ├── env.example
+│   └── README.md
+├── env.example            # Legacy/global example (use backend/env.example)
+├── package.json           # Legacy monorepo scripts (client/server placeholders)
 └── README.md
 ```
 
-## Contributing
+Note: Some directories such as `controllers/`, `routes/`, and `services/` are present for organization and may be populated as features evolve. Active data models live under `backend/src/models/`.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## Backend Scripts
+
+Run scripts from `backend/`:
+
+```bash
+# Development
+npm run dev        # nodemon server
+npm start          # production start
+
+# Tests
+npm test
+npm run test:watch
+npm run test:coverage
+
+# Linting
+npm run lint
+npm run lint:fix
+
+# Database utilities
+npm run db:seed
+npm run db:reset
+npm run db:migrate
+```
+
+## Environment Configuration
+
+Use `backend/env.example` as the source of truth. Key groups:
+
+- App: `NODE_ENV`, `PORT`
+- MongoDB: `MONGODB_URI`
+- Auth: `JWT_SECRET`, `JWT_EXPIRES_IN`
+- Blockchain: `RPC_URL`, `PRIVATE_KEY`, `CONTRACT_ADDRESS`
+- IPFS: `IPFS_API_URL`, `IPFS_PROJECT_ID`, `IPFS_PROJECT_SECRET`
+- Redis: `REDIS_URL`
+- File uploads: `MAX_FILE_SIZE`, `ALLOWED_FILE_TYPES`
+- Security: `BCRYPT_ROUNDS`, rate-limit settings
+- Frontend: `FRONTEND_URL`
+- Email: `SMTP_*`
+- Monitoring: `SENTRY_DSN`, `LOG_LEVEL`
+
+For a minimal local setup, MongoDB and `JWT_SECRET` are required.
+
+## Data Models
+
+Primary Mongoose models are exported via `backend/src/models/index.js` and include `User`, `Patient`, `Document`, `AccessRequest`, `AuditLog`, `TextChunk`, `EmbeddingMap`, and `Notification`.
+
+## API Overview
+
+High-level endpoints (see `backend/README.md` for details):
+
+- Auth: wallet login, email/password, register
+- Documents: upload, list, details, access requests, download
+- Chat: create session, send message, history
+- Admin: manage access requests
+
+## Security Notes
+
+- Use strong, unique `JWT_SECRET` in production
+- Enable HTTPS and set secure CORS origins
+- Configure rate limiting and input validation
+- Store encryption keys and private keys securely
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Security
-
-MediVault prioritizes patient data security and privacy. All sensitive information is encrypted and follows HIPAA compliance guidelines.
-
-## Support
-
-For support, email support@medivault.com or join our Slack channel.
-
-## Roadmap
-
-- [ ] Mobile application (React Native)
-- [ ] AI-powered medical insights
-- [ ] Integration with medical devices
-- [ ] Telemedicine features
-- [ ] Advanced analytics dashboard
+MIT License. See `LICENSE` if present.
